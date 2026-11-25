@@ -81,7 +81,7 @@ async def test_duplicate_and_unknown_member(client: AsyncClient, world: World) -
     assert r.status_code == 409
     r = await client.post(
         f"/v1/workspaces/{world.ws_b}/members",
-        json={"email": "nobody-signed-in@example.test", "role": "viewer"},
+        json={"email": "nobody-signed-in@example.com", "role": "viewer"},
         headers=world.bob.headers,
     )
     assert r.status_code == 404

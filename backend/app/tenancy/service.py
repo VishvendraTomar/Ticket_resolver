@@ -68,7 +68,7 @@ async def list_my_workspaces(session: AsyncSession, user: User) -> list[tuple[Wo
         .where(Membership.user_id == user.id)
         .order_by(Workspace.created_at)
     )
-    return [(ws, role) for ws, role in rows.tuples()]
+    return [(ws, role) for ws, role in rows]
 
 
 async def create_workspace(session: AsyncSession, user: User, name: str) -> Workspace:
@@ -130,7 +130,7 @@ async def list_members(
         .where(Membership.workspace_id == access.workspace_id)
         .order_by(Membership.created_at)
     )
-    return [(m, u) for m, u in rows.tuples()]
+    return [(m, u) for m, u in rows]
 
 
 async def add_member(

@@ -246,6 +246,9 @@ def upgrade() -> None:
 def downgrade() -> None:
     _run_all(f"""
         DROP FUNCTION IF EXISTS app_find_user_id_by_email(text);
+        -- These policies reference memberships, so they must go before it.
+        DROP POLICY IF EXISTS workspaces_select ON workspaces;
+        DROP POLICY IF EXISTS users_select ON users;
         DROP TABLE IF EXISTS audit_events;
         DROP FUNCTION IF EXISTS audit_events_reject_change();
         DROP TABLE IF EXISTS memberships;

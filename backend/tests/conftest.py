@@ -94,7 +94,7 @@ def new_person(label: str) -> Person:
     """A unique identity per call, so tests never collide in a shared database."""
     suffix = uuid.uuid4().hex[:12]
     subject = f"test_{label}_{suffix}"
-    email = f"{label}.{suffix}@example.test"
+    email = f"{label}.{suffix}@example.com"
     return Person(subject=subject, email=email, token=make_fake_token(subject, email, label))
 
 
