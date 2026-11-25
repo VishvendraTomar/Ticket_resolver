@@ -94,6 +94,275 @@ async def case_remove_member(client: AsyncClient, w: World) -> None:
     assert any(m["id"] == w.carol_membership_b for m in await _b_members(client, w))
 
 
+# --- Knowledge base (M2) -----------------------------------------------------------------
+
+
+async def _b_document(client: AsyncClient, w: World) -> tuple[str, str]:
+    """A document in B (as Bob), parsed and awaiting review. Returns (document_id, version_id)."""
+    from tests.knowledge.helpers import upload
+
+    doc = await upload(client, w.bob, w.ws_b, title="B secret policy")
+    return doc["id"], doc["versions"][0]["id"]
+
+
+async def _b_get(client: AsyncClient, w: World, path: str) -> object:
+    r = await client.get(f"/v1/workspaces/{w.ws_b}{path}", headers=w.bob.headers)
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+async def _alice_404(client: AsyncClient, method: str, paths: list[str], **kw: object) -> None:
+    for path in paths:
+        r = await client.request(method, path, **kw)  # type: ignore[arg-type]
+        assert r.status_code == 404, (path, r.status_code, r.text)
+
+
+async def case_list_jurisdictions(client: AsyncClient, w: World) -> None:
+    await _alice_404(
+        client, "GET", [f"/v1/workspaces/{w.ws_b}/jurisdictions"], headers=w.alice.headers
+    )
+
+
+async def case_list_topics(client: AsyncClient, w: World) -> None:
+    await client.post(
+        f"/v1/workspaces/{w.ws_b}/topics",
+        json={"key": "b_only", "name": "B"},
+        headers=w.bob.headers,
+    )
+    await _alice_404(client, "GET", [f"/v1/workspaces/{w.ws_b}/topics"], headers=w.alice.headers)
+    a_topics = (await client.get(f"/v1/workspaces/{w.ws_a}/topics", headers=w.alice.headers)).json()
+    assert "b_only" not in {t["key"] for t in a_topics}
+
+
+async def case_create_topic(client: AsyncClient, w: World) -> None:
+    before = await _b_get(client, w, "/topics")
+    await _alice_404(
+        client,
+        "POST",
+        [f"/v1/workspaces/{w.ws_b}/topics"],
+        json={"key": "x", "name": "X"},
+        headers=w.alice.headers,
+    )
+    assert await _b_get(client, w, "/topics") == before
+
+
+async def case_list_scope_fields(client: AsyncClient, w: World) -> None:
+    await client.post(
+        f"/v1/workspaces/{w.ws_b}/scope-fields",
+        json={"key": "b_field", "name": "B", "allowed_values": ["x"]},
+        headers=w.bob.headers,
+    )
+    await _alice_404(
+        client, "GET", [f"/v1/workspaces/{w.ws_b}/scope-fields"], headers=w.alice.headers
+    )
+    a = (await client.get(f"/v1/workspaces/{w.ws_a}/scope-fields", headers=w.alice.headers)).json()
+    assert a == []
+
+
+async def case_create_scope_field(client: AsyncClient, w: World) -> None:
+    before = await _b_get(client, w, "/scope-fields")
+    await _alice_404(
+        client,
+        "POST",
+        [f"/v1/workspaces/{w.ws_b}/scope-fields"],
+        json={"key": "x", "name": "X", "allowed_values": ["a"]},
+        headers=w.alice.headers,
+    )
+    assert await _b_get(client, w, "/scope-fields") == before
+
+
+async def case_list_glossary(client: AsyncClient, w: World) -> None:
+    await client.post(
+        f"/v1/workspaces/{w.ws_b}/glossary", json={"term": "B-PTO"}, headers=w.bob.headers
+    )
+    await _alice_404(client, "GET", [f"/v1/workspaces/{w.ws_b}/glossary"], headers=w.alice.headers)
+    a = (await client.get(f"/v1/workspaces/{w.ws_a}/glossary", headers=w.alice.headers)).json()
+    assert a == []
+
+
+async def case_create_glossary_term(client: AsyncClient, w: World) -> None:
+    before = await _b_get(client, w, "/glossary")
+    await _alice_404(
+        client,
+        "POST",
+        [f"/v1/workspaces/{w.ws_b}/glossary"],
+        json={"term": "X"},
+        headers=w.alice.headers,
+    )
+    assert await _b_get(client, w, "/glossary") == before
+
+
+async def case_delete_glossary_term(client: AsyncClient, w: World) -> None:
+    r = await client.post(
+        f"/v1/workspaces/{w.ws_b}/glossary", json={"term": "Keep me"}, headers=w.bob.headers
+    )
+    term = r.json()["id"]
+    await _alice_404(
+        client,
+        "DELETE",
+        [f"/v1/workspaces/{w.ws_b}/glossary/{term}", f"/v1/workspaces/{w.ws_a}/glossary/{term}"],
+        headers=w.alice.headers,
+    )
+    assert any(t["id"] == term for t in await _b_get(client, w, "/glossary"))  # type: ignore[attr-defined]
+
+
+async def case_list_documents(client: AsyncClient, w: World) -> None:
+    await _b_document(client, w)
+    await _alice_404(client, "GET", [f"/v1/workspaces/{w.ws_b}/documents"], headers=w.alice.headers)
+    a = (await client.get(f"/v1/workspaces/{w.ws_a}/documents", headers=w.alice.headers)).json()
+    assert a == []
+
+
+async def case_create_document(client: AsyncClient, w: World) -> None:
+    before = await _b_get(client, w, "/documents")
+    await _alice_404(
+        client,
+        "POST",
+        [f"/v1/workspaces/{w.ws_b}/documents"],
+        data={"title": "x"},
+        files={"file": ("a.md", b"# T\n\ntext", "text/markdown")},
+        headers=w.alice.headers,
+    )
+    assert await _b_get(client, w, "/documents") == before
+
+
+async def case_get_document(client: AsyncClient, w: World) -> None:
+    doc, _ = await _b_document(client, w)
+    await _alice_404(
+        client,
+        "GET",
+        [f"/v1/workspaces/{w.ws_b}/documents/{doc}", f"/v1/workspaces/{w.ws_a}/documents/{doc}"],
+        headers=w.alice.headers,
+    )
+
+
+async def case_add_version(client: AsyncClient, w: World) -> None:
+    doc, _ = await _b_document(client, w)
+    before = await _b_get(client, w, f"/documents/{doc}")
+    await _alice_404(
+        client,
+        "POST",
+        [
+            f"/v1/workspaces/{w.ws_b}/documents/{doc}/versions",
+            f"/v1/workspaces/{w.ws_a}/documents/{doc}/versions",
+        ],
+        files={"file": ("v2.md", b"# T\n\nnew text here", "text/markdown")},
+        headers=w.alice.headers,
+    )
+    assert await _b_get(client, w, f"/documents/{doc}") == before
+
+
+async def case_get_version(client: AsyncClient, w: World) -> None:
+    _, v = await _b_document(client, w)
+    await _alice_404(
+        client,
+        "GET",
+        [f"/v1/workspaces/{w.ws_b}/versions/{v}", f"/v1/workspaces/{w.ws_a}/versions/{v}"],
+        headers=w.alice.headers,
+    )
+
+
+async def case_list_sections(client: AsyncClient, w: World) -> None:
+    _, v = await _b_document(client, w)
+    await _alice_404(
+        client,
+        "GET",
+        [
+            f"/v1/workspaces/{w.ws_b}/versions/{v}/sections",
+            f"/v1/workspaces/{w.ws_a}/versions/{v}/sections",
+        ],
+        headers=w.alice.headers,
+    )
+
+
+async def case_confirm_tags(client: AsyncClient, w: World) -> None:
+    _, v = await _b_document(client, w)
+    body = {"jurisdiction_code": "DE", "effective_from": "2026-01-01"}
+    await _alice_404(
+        client,
+        "PUT",
+        [
+            f"/v1/workspaces/{w.ws_b}/versions/{v}/tags",
+            f"/v1/workspaces/{w.ws_a}/versions/{v}/tags",
+        ],
+        json=body,
+        headers=w.alice.headers,
+    )
+    version = await _b_get(client, w, f"/versions/{v}")
+    assert version["tags_confirmed_at"] is None  # type: ignore[index]
+
+
+async def _b_ready(client: AsyncClient, w: World) -> str:
+    from tests.knowledge.helpers import confirm
+
+    _, v = await _b_document(client, w)
+    await confirm(client, w.bob, w.ws_b, v)
+    return v
+
+
+async def case_publish_version(client: AsyncClient, w: World) -> None:
+    v = await _b_ready(client, w)
+    await _alice_404(
+        client,
+        "POST",
+        [
+            f"/v1/workspaces/{w.ws_b}/versions/{v}/publish",
+            f"/v1/workspaces/{w.ws_a}/versions/{v}/publish",
+        ],
+        json={"acknowledge_conflicts": True},
+        headers=w.alice.headers,
+    )
+    assert (await _b_get(client, w, f"/versions/{v}"))["status"] == "draft"  # type: ignore[index]
+
+
+async def case_retire_version(client: AsyncClient, w: World) -> None:
+    from tests.knowledge.helpers import publish
+
+    v = await _b_ready(client, w)
+    await publish(client, w.bob, w.ws_b, v, ack=True)
+    await _alice_404(
+        client,
+        "POST",
+        [
+            f"/v1/workspaces/{w.ws_b}/versions/{v}/retire",
+            f"/v1/workspaces/{w.ws_a}/versions/{v}/retire",
+        ],
+        headers=w.alice.headers,
+    )
+    assert (await _b_get(client, w, f"/versions/{v}"))["status"] == "published"  # type: ignore[index]
+
+
+async def case_retry_version(client: AsyncClient, w: World) -> None:
+    _, v = await _b_document(client, w)
+    await _alice_404(
+        client,
+        "POST",
+        [
+            f"/v1/workspaces/{w.ws_b}/versions/{v}/retry",
+            f"/v1/workspaces/{w.ws_a}/versions/{v}/retry",
+        ],
+        headers=w.alice.headers,
+    )
+
+
+async def case_get_coverage(client: AsyncClient, w: World) -> None:
+    from tests.knowledge.helpers import publish
+
+    v = await _b_ready(client, w)
+    await publish(client, w.bob, w.ws_b, v, ack=True)
+    await _alice_404(client, "GET", [f"/v1/workspaces/{w.ws_b}/coverage"], headers=w.alice.headers)
+    a = (await client.get(f"/v1/workspaces/{w.ws_a}/coverage", headers=w.alice.headers)).json()
+    assert a["cells"] == []
+
+
+async def case_list_job_failures(client: AsyncClient, w: World) -> None:
+    await _alice_404(
+        client, "GET", [f"/v1/workspaces/{w.ws_b}/job-failures"], headers=w.alice.headers
+    )
+    a = (await client.get(f"/v1/workspaces/{w.ws_a}/job-failures", headers=w.alice.headers)).json()
+    assert a == []
+
+
 CASES: dict[tuple[str, str], Case] = {
     ("GET", "/v1/me"): case_get_me,
     ("POST", "/v1/workspaces"): case_create_workspace,
@@ -102,6 +371,26 @@ CASES: dict[tuple[str, str], Case] = {
     ("POST", "/v1/workspaces/{workspace_id}/members"): case_add_member,
     ("PATCH", "/v1/workspaces/{workspace_id}/members/{membership_id}"): case_change_member_role,
     ("DELETE", "/v1/workspaces/{workspace_id}/members/{membership_id}"): case_remove_member,
+    ("GET", "/v1/workspaces/{workspace_id}/jurisdictions"): case_list_jurisdictions,
+    ("GET", "/v1/workspaces/{workspace_id}/topics"): case_list_topics,
+    ("POST", "/v1/workspaces/{workspace_id}/topics"): case_create_topic,
+    ("GET", "/v1/workspaces/{workspace_id}/scope-fields"): case_list_scope_fields,
+    ("POST", "/v1/workspaces/{workspace_id}/scope-fields"): case_create_scope_field,
+    ("GET", "/v1/workspaces/{workspace_id}/glossary"): case_list_glossary,
+    ("POST", "/v1/workspaces/{workspace_id}/glossary"): case_create_glossary_term,
+    ("DELETE", "/v1/workspaces/{workspace_id}/glossary/{term_id}"): case_delete_glossary_term,
+    ("GET", "/v1/workspaces/{workspace_id}/documents"): case_list_documents,
+    ("POST", "/v1/workspaces/{workspace_id}/documents"): case_create_document,
+    ("GET", "/v1/workspaces/{workspace_id}/documents/{document_id}"): case_get_document,
+    ("POST", "/v1/workspaces/{workspace_id}/documents/{document_id}/versions"): case_add_version,
+    ("GET", "/v1/workspaces/{workspace_id}/versions/{version_id}"): case_get_version,
+    ("GET", "/v1/workspaces/{workspace_id}/versions/{version_id}/sections"): case_list_sections,
+    ("PUT", "/v1/workspaces/{workspace_id}/versions/{version_id}/tags"): case_confirm_tags,
+    ("POST", "/v1/workspaces/{workspace_id}/versions/{version_id}/publish"): case_publish_version,
+    ("POST", "/v1/workspaces/{workspace_id}/versions/{version_id}/retire"): case_retire_version,
+    ("POST", "/v1/workspaces/{workspace_id}/versions/{version_id}/retry"): case_retry_version,
+    ("GET", "/v1/workspaces/{workspace_id}/coverage"): case_get_coverage,
+    ("GET", "/v1/workspaces/{workspace_id}/job-failures"): case_list_job_failures,
 }
 
 

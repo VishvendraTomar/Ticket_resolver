@@ -9,6 +9,7 @@ dependencies = [
     "docling>=2.150.0",
     "google-cloud-storage>=3.17.1",
     "litellm>=1.108.5",
+    "onnxruntime>=1.31.1",  # RapidOCR engine used by Docling for scanned PDFs
     "pgvector>=0.5.1",
     "python-multipart>=0.0.33",
     "email-validator>=2.4.0",
@@ -65,7 +66,16 @@ known-third-party = ["alembic"]
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["app"]
+files = ["app", "workers"]
+
+[[tool.mypy.overrides]]
+# Celery ships no type information.
+module = ["celery", "celery.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["workers.tasks"]
+disallow_untyped_decorators = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -75,5 +85,6 @@ asyncio_default_test_loop_scope = "session"
 markers = [
     "db: needs a real Postgres (DATABASE_URL and APP_DATABASE_URL)",
     "live: calls real external providers; never runs by default",
+    "docling_models: needs Docling's downloaded layout/OCR models (DOCLING_MODELS=1)",
 ]
 addopts = "-ra"

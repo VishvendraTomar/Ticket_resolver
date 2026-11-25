@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1 import tenancy
+from app.api.v1 import knowledge, tenancy
 from app.core.config import Settings, get_settings
 from app.core.errors import install_error_handlers
 from app.core.logging import configure_logging, request_id_middleware
@@ -46,6 +46,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     v1 = APIRouter(prefix="/v1")
     v1.include_router(tenancy.router)
+    v1.include_router(knowledge.router)
     app.include_router(v1)
     return app
 

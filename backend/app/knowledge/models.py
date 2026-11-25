@@ -112,6 +112,8 @@ class DocumentVersion(UUIDPk, CreatedAt, Base):
         _enum(PipelineStatus, "pipeline_status"), default=PipelineStatus.QUEUED
     )
     pipeline_error: Mapped[str | None] = mapped_column(Text)
+    pipeline_run_id: Mapped[uuid.UUID | None]
+    pipeline_lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     needs_review: Mapped[bool] = mapped_column(Boolean, default=False)
     file_name: Mapped[str] = mapped_column(String(300))
     mime_type: Mapped[str] = mapped_column(String(100))

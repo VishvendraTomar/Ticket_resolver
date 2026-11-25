@@ -17,6 +17,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import set_context
 from app.core.errors import Conflict, Forbidden, NotFound
+from app.knowledge.defaults import DEFAULT_TOPICS
+from app.knowledge.models import Jurisdiction, Topic
 from app.providers.auth.base import Principal
 from app.tenancy.models import AuditEvent, Membership, User, Workspace
 from app.tenancy.roles import Role, can_assign_role, can_manage_members
@@ -29,6 +31,8 @@ class WorkspaceAccess:
     user: User
     workspace_id: uuid.UUID
     role: Role
+    # Policy editors may be limited to these jurisdictions (and descendants); None = all.
+    jurisdiction_codes: list[str] | None = None
 
 
 # --- Users ---------------------------------------------------------------------------
@@ -80,6 +84,10 @@ async def create_workspace(session: AsyncSession, user: User, name: str) -> Work
         id=uuid.uuid4(), workspace_id=workspace.id, user_id=user.id, role=Role.OWNER
     )
     session.add(membership)
+    session.add_all(
+        Topic(id=uuid.uuid4(), workspace_id=workspace.id, key=key, name=name)
+        for key, name in DEFAULT_TOPICS
+    )
     await session.flush()
     await record_audit(
         session,
@@ -100,15 +108,20 @@ async def enter_workspace(
 
     Not a member and "doesn't exist" both give 404, so ids can't be probed.
     """
-    role = await session.scalar(
-        select(Membership.role).where(
-            Membership.workspace_id == workspace_id, Membership.user_id == user.id
+    row = (
+        await session.execute(
+            select(Membership.role, Membership.jurisdiction_codes).where(
+                Membership.workspace_id == workspace_id, Membership.user_id == user.id
+            )
         )
-    )
-    if role is None:
+    ).first()
+    if row is None:
         raise NotFound("Workspace not found")
+    role, codes = row
     await set_context(session, workspace_id=workspace_id)
-    return WorkspaceAccess(user=user, workspace_id=workspace_id, role=role)
+    return WorkspaceAccess(
+        user=user, workspace_id=workspace_id, role=role, jurisdiction_codes=codes
+    )
 
 
 async def get_workspace(session: AsyncSession, access: WorkspaceAccess) -> Workspace:
@@ -169,28 +182,65 @@ async def add_member(
     return membership, user
 
 
-async def change_member_role(
-    session: AsyncSession, access: WorkspaceAccess, membership_id: uuid.UUID, role: Role
+async def update_member(
+    session: AsyncSession,
+    access: WorkspaceAccess,
+    membership_id: uuid.UUID,
+    *,
+    role: Role | None = None,
+    jurisdiction_codes: list[str] | None = None,
+    set_jurisdictions: bool = False,
 ) -> tuple[Membership, User]:
+    """Change a member's role and/or jurisdiction restrictions (None clears them)."""
     _require_manager(access)
     membership = await _get_membership_for_update(session, access, membership_id)
-    if not can_assign_role(access.role, membership.role) or not can_assign_role(access.role, role):
+    if not can_assign_role(access.role, membership.role):
         raise Forbidden("Only owners can change owners or grant the owner role")
-    if membership.role is Role.OWNER and role is not Role.OWNER:
-        await _ensure_not_last_owner(session, access)
 
-    previous = membership.role
-    membership.role = role
-    await session.flush()
-    await record_audit(
-        session,
-        access.workspace_id,
-        access.user.id,
-        "member.role_changed",
-        "membership",
-        membership.id,
-        {"from": previous, "to": role},
-    )
+    if role is not None and role is not membership.role:
+        if not can_assign_role(access.role, role):
+            raise Forbidden("Only owners can change owners or grant the owner role")
+        if membership.role is Role.OWNER:
+            await _ensure_not_last_owner(session, access)
+        previous = membership.role
+        membership.role = role
+        await session.flush()
+        await record_audit(
+            session,
+            access.workspace_id,
+            access.user.id,
+            "member.role_changed",
+            "membership",
+            membership.id,
+            {"from": previous, "to": role},
+        )
+
+    if set_jurisdictions:
+        codes = sorted(set(jurisdiction_codes)) if jurisdiction_codes else None
+        if codes:
+            known = set(
+                (
+                    await session.scalars(
+                        select(Jurisdiction.code).where(Jurisdiction.code.in_(codes))
+                    )
+                ).all()
+            )
+            unknown = [c for c in codes if c not in known]
+            if unknown:
+                raise Conflict(f"Unknown jurisdiction codes: {', '.join(unknown)}")
+        previous_codes = membership.jurisdiction_codes
+        membership.jurisdiction_codes = codes
+        await session.flush()
+        await record_audit(
+            session,
+            access.workspace_id,
+            access.user.id,
+            "member.jurisdictions_changed",
+            "membership",
+            membership.id,
+            {"from": previous_codes, "to": codes},
+        )
+
     user = await session.get_one(User, membership.user_id)
     return membership, user
 

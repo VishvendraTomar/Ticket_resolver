@@ -25,10 +25,10 @@ repos:
         pass_filenames: false
 
       - id: mypy
-        name: mypy (backend/app, strict)
+        name: mypy (backend app + workers, strict)
         language: system
-        entry: bash -c 'cd backend && uv run --frozen mypy app'
-        files: '^backend/app/.*\.py$'
+        entry: bash -c 'cd backend && uv run --frozen mypy app workers'
+        files: '^backend/(app|workers)/.*\.py$'
         pass_filenames: false
 
       - id: web-lint

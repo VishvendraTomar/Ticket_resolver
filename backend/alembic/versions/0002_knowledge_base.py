@@ -159,6 +159,9 @@ def upgrade() -> None:
             status             version_status NOT NULL DEFAULT 'draft',
             pipeline_status    pipeline_status NOT NULL DEFAULT 'queued',
             pipeline_error     text,
+            -- Lease held by the job currently working on this version (ADR-0007).
+            pipeline_run_id      uuid,
+            pipeline_lease_until timestamptz,
             needs_review       boolean NOT NULL DEFAULT false,
             file_name          varchar(300) NOT NULL,
             mime_type          varchar(100) NOT NULL,

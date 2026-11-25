@@ -16,10 +16,18 @@ while Celery tasks are synchronous functions.
 - **Queues:** `ingestion` (parse, tag, embed) and `maintenance` (later:
   re-embedding, cleanup). Workers run with `--concurrency` sized for
   Docling's memory.
-- **Tasks are thin.** Each task calls an async service function with
-  `asyncio.run(...)`, using an engine created **per worker process**
-  (`worker_process_init`) and disposed on shutdown. No engine is shared
-  across event loops.
+- **Tasks are thin.** Each task calls an async pipeline function with
+  `asyncio.run(...)`, using an engine **created for that run with
+  `NullPool`** and disposed at the end. Pooled asyncpg connections can't
+  outlive the event loop that opened them, and every task run has a fresh
+  loop. In eager mode (tests, local dev without a worker), a task called
+  from inside a running loop runs in a helper thread with its own loop.
+- **Short transactions, with a lease.** A job claims the version
+  (`pipeline_run_id`, `pipeline_lease_until`) in a short transaction. It
+  does the slow work (parsing, provider calls) with no transaction or row
+  lock held, then writes in a second short transaction, but only if it
+  still holds the lease. A redelivered or concurrent run sees a live lease
+  and skips. An expired lease (a crashed worker) can be taken over.
 - **Tenant context:** tasks take `workspace_id` and `version_id` as
   arguments, and connect as `app_user` through the same `set_context`
   helper as API requests (ADR-0002). A task never uses the owner role.
@@ -38,7 +46,8 @@ while Celery tasks are synchronous functions.
   `failed` with a readable reason. Editors see it and can call
   `POST …/versions/{id}/retry`.
 - **Tests run tasks eagerly** (`task_always_eager`) against the real
-  database, with fake providers. No broker is needed in tests.
+  database, with fake providers. No broker is needed in tests. In eager
+  mode, retries happen inline instead of through `task.retry`.
 
 ## Alternatives considered
 - **Arq / Dramatiq / RQ:** fine tools, but the spec and the GCP plan name

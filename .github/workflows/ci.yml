@@ -66,7 +66,7 @@ jobs:
           uv run --frozen ruff format --check . ../seed
 
       - name: Mypy
-        run: uv run --frozen mypy app
+        run: uv run --frozen mypy app workers
 
       - name: Migrations (upgrade, full downgrade, upgrade)
         run: |

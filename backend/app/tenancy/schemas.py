@@ -45,6 +45,8 @@ class MemberOut(BaseModel):
     id: uuid.UUID  # membership id
     user: UserOut
     role: Role
+    # Policy editors may be limited to these jurisdictions; null = unrestricted.
+    jurisdiction_codes: list[str] | None = None
     created_at: datetime
 
 
@@ -54,4 +56,7 @@ class MemberAdd(BaseModel):
 
 
 class MemberUpdate(BaseModel):
-    role: Role
+    """Send `role`, `jurisdiction_codes`, or both. `jurisdiction_codes: null` clears them."""
+
+    role: Role | None = None
+    jurisdiction_codes: list[str] | None = Field(default=None, max_length=50)

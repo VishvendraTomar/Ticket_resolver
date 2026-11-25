@@ -26,12 +26,17 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import NullPool
 
 from app.core.config import get_settings, to_asyncpg_url
 
 
-def make_engine(raw_url: str) -> AsyncEngine:
+def make_engine(raw_url: str, *, null_pool: bool = False) -> AsyncEngine:
+    """null_pool: for code that runs each job in a fresh event loop (Celery, ADR-0007);
+    pooled asyncpg connections can't outlive the loop that opened them."""
     target = to_asyncpg_url(raw_url)
+    if null_pool:
+        return create_async_engine(target.url, connect_args=target.connect_args, poolclass=NullPool)
     return create_async_engine(
         target.url,
         connect_args=target.connect_args,

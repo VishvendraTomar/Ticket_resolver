@@ -28,6 +28,7 @@ def _member_out(membership: Membership, user: User) -> MemberOut:
         id=membership.id,
         user=UserOut.model_validate(user),
         role=membership.role,
+        jurisdiction_codes=membership.jurisdiction_codes,
         created_at=membership.created_at,
     )
 
@@ -88,7 +89,14 @@ async def add_member(body: MemberAdd, session: SessionDep, access: Access) -> Me
 async def change_member_role(
     membership_id: uuid.UUID, body: MemberUpdate, session: SessionDep, access: Access
 ) -> MemberOut:
-    membership, user = await service.change_member_role(session, access, membership_id, body.role)
+    membership, user = await service.update_member(
+        session,
+        access,
+        membership_id,
+        role=body.role,
+        jurisdiction_codes=body.jurisdiction_codes,
+        set_jurisdictions="jurisdiction_codes" in body.model_fields_set,
+    )
     out = _member_out(membership, user)
     await session.commit()
     return out

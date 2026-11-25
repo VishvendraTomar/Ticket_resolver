@@ -98,3 +98,51 @@ async def test_fake_embedder_is_deterministic_and_meaningful() -> None:
         return sum(i * j for i, j in zip(x, y, strict=True))
 
     assert dot(q, a1) > dot(q, b)
+
+
+# --- Database cases ----------------------------------------------------------------------
+
+import uuid  # noqa: E402
+
+from httpx import AsyncClient  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncEngine  # noqa: E402
+
+from app.core.db import get_sessionmaker  # noqa: E402
+from app.core.errors import Conflict  # noqa: E402
+from app.knowledge import service  # noqa: E402
+from app.tenancy.roles import Role  # noqa: E402
+from app.tenancy.service import WorkspaceAccess, enter_workspace, resolve_user  # noqa: E402
+from tests.conftest import World  # noqa: E402
+from tests.knowledge.helpers import published_version, rows  # noqa: E402
+
+
+@pytest.mark.db
+async def test_embeddings_store_model_and_dims(
+    client: AsyncClient, world: World, app_engine: AsyncEngine
+) -> None:
+    _, vid = await published_version(client, world.bob, world.ws_b)
+    got = await rows(
+        app_engine,
+        world.ws_b,
+        "SELECT DISTINCT e.model, e.dims, vector_dims(e.embedding) FROM chunk_embeddings e "
+        "JOIN chunks c ON c.id = e.chunk_id WHERE c.version_id = :v",
+        v=vid,
+    )
+    assert got == [("fake/hash@768", 768, 768)]
+
+
+@pytest.mark.db
+async def test_cannot_activate_incomplete_model(client: AsyncClient, world: World) -> None:
+    await published_version(client, world.bob, world.ws_b)
+    from app.providers.auth.base import Principal
+
+    async with get_sessionmaker()() as session, session.begin():
+        user = await resolve_user(session, Principal(world.bob.subject, world.bob.email, "bob"))
+        access: WorkspaceAccess = await enter_workspace(session, user, uuid.UUID(world.ws_b))
+        assert access.role is Role.OWNER
+        with pytest.raises(Conflict, match="have no vertex/gemini-embedding-001@768 embedding"):
+            await service.activate_embedding_model(
+                session, access, "vertex/gemini-embedding-001@768"
+            )
+        # The model every chunk already has can be activated.
+        await service.activate_embedding_model(session, access, "fake/hash@768")

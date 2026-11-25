@@ -10,9 +10,10 @@ class DomainError(Exception):
     status_code = 400
     code = "bad_request"
 
-    def __init__(self, message: str) -> None:
+    def __init__(self, message: str, details: dict[str, object] | None = None) -> None:
         super().__init__(message)
         self.message = message
+        self.details = details
 
 
 class NotFound(DomainError):
@@ -32,6 +33,23 @@ class Conflict(DomainError):
     code = "conflict"
 
 
+class PayloadTooLarge(DomainError):
+    status_code = 413
+    code = "payload_too_large"
+
+
+class UnsupportedMediaType(DomainError):
+    status_code = 415
+    code = "unsupported_media_type"
+
+
+class Unprocessable(DomainError):
+    """Well-formed request that breaks a domain rule (e.g. an unknown jurisdiction)."""
+
+    status_code = 422
+    code = "unprocessable"
+
+
 class Unauthenticated(DomainError):
     status_code = 401
     code = "unauthenticated"
@@ -43,6 +61,12 @@ def install_error_handlers(app: FastAPI) -> None:
         headers = {"WWW-Authenticate": "Bearer"} if isinstance(exc, Unauthenticated) else None
         return JSONResponse(
             status_code=exc.status_code,
-            content={"error": {"code": exc.code, "message": exc.message}},
+            content={
+                "error": {
+                    "code": exc.code,
+                    "message": exc.message,
+                    **({"details": exc.details} if exc.details else {}),
+                }
+            },
             headers=headers,
         )
