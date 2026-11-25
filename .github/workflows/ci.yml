@@ -122,17 +122,28 @@ jobs:
 
   images:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 40
+    env:
+      # Throwaway credentials for this job's containers only.
+      POSTGRES_PASSWORD: ci_owner_password
+      APP_DB_PASSWORD: ci_app_user_password
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Validate compose file
-        env:
-          APP_DB_PASSWORD: ci_only
         run: docker compose --profile app config --quiet
 
-      - name: Build API image
-        run: docker build -t ticket-resolver-api:ci backend
+      - name: Build images (api/worker/migrate share one; web)
+        run: docker compose --profile app build
 
-      - name: Build web image
-        run: docker build -t ticket-resolver-web:ci web
+      - name: Full stack up (postgres, redis, migrate, api, worker, web)
+        run: docker compose --profile app up -d --wait
+
+      - name: M2 demo through the containerised API and Celery worker
+        run: |
+          docker compose run --rm --no-deps -v "$PWD/seed:/seed:ro" -e PYTHONPATH=/app \
+            api python /seed/demo_m2.py --api-url http://api:8000
+
+      - name: Service logs
+        if: failure()
+        run: docker compose --profile app logs --tail 200 api worker migrate
