@@ -19,9 +19,11 @@ GLOBAL_TABLES = {
     "workspaces": "tenant root; policies key on id (FORCE'd like tenant tables)",
     "users": "people span workspaces; RLS on, not FORCE'd, so the SECURITY DEFINER "
     "email lookup (owner) can see all rows",
+    "jurisdictions": "ISO reference tree shared by every workspace; app_user may only "
+    "SELECT (policy USING true); written by migrations only",
 }
 # Global tables that must still be FORCE'd.
-GLOBAL_TABLES_FORCED = {"workspaces"}
+GLOBAL_TABLES_FORCED = {"workspaces", "jurisdictions"}
 
 # SECURITY DEFINER functions are RLS escape hatches; each must be listed and justified.
 SECURITY_DEFINER_ALLOWLIST = {
@@ -164,3 +166,22 @@ async def test_audit_log_has_append_only_triggers(owner_engine: AsyncEngine) -> 
             ).scalars()
         )
     assert {"audit_events_no_update_delete", "audit_events_no_truncate"} <= triggers
+
+
+async def test_reference_tables_are_read_only_for_the_app(owner_engine: AsyncEngine) -> None:
+    async with owner_engine.connect() as conn:
+        rows = (
+            (
+                await conn.execute(
+                    text("""
+                    SELECT p.privilege
+                    FROM unnest(ARRAY['INSERT', 'UPDATE', 'DELETE', 'TRUNCATE']) AS p(privilege)
+                    WHERE has_table_privilege(:role, 'jurisdictions', p.privilege)
+                """),
+                    {"role": APP_ROLE},
+                )
+            )
+            .scalars()
+            .all()
+        )
+    assert rows == [], f"app_user can write jurisdictions: {rows}"

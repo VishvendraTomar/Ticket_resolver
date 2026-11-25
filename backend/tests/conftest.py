@@ -12,6 +12,12 @@ import os
 # Force the test environment before the app (and its settings) are imported.
 os.environ["ENVIRONMENT"] = "test"
 os.environ["AUTH_PROVIDER"] = "fake"
+# Offline and free (ADR-0004): fakes for every external service, jobs run inline.
+os.environ["STORAGE_PROVIDER"] = "memory"
+os.environ["PARSER_PROVIDER"] = "fake"
+os.environ["EMBEDDINGS_PROVIDER"] = "fake"
+os.environ["LLM_PROVIDER"] = "fake"
+os.environ["CELERY_TASK_ALWAYS_EAGER"] = "true"
 
 import uuid
 from collections.abc import AsyncIterator

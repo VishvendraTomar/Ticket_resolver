@@ -11,6 +11,7 @@ from sqlalchemy.engine import Connection
 from app.core.config import get_settings
 from app.core.db import make_engine
 from app.core.models import Base
+from app.knowledge import models as _knowledge_models  # noqa: F401  (registers tables)
 from app.tenancy import models as _tenancy_models  # noqa: F401  (registers tables)
 
 config = context.config

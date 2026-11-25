@@ -6,7 +6,7 @@ import uuid
 from typing import Any
 
 from sqlalchemy import Enum, ForeignKey, String, UniqueConstraint
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.models import Base, CreatedAt, UUIDPk
@@ -17,6 +17,8 @@ class Workspace(UUIDPk, CreatedAt, Base):
     __tablename__ = "workspaces"
 
     name: Mapped[str] = mapped_column(String(200))
+    # NULL = the deployment's configured embedding model (PLAN §4.6).
+    active_embedding_model: Mapped[str | None] = mapped_column(String(100))
 
 
 class User(UUIDPk, CreatedAt, Base):
@@ -42,6 +44,8 @@ class Membership(UUIDPk, CreatedAt, Base):
     role: Mapped[Role] = mapped_column(
         Enum(Role, name="workspace_role", values_callable=lambda e: [m.value for m in e])
     )
+    # Policy editors may be limited to these jurisdictions and their descendants; NULL = all.
+    jurisdiction_codes: Mapped[list[str] | None] = mapped_column(ARRAY(String(16)))
 
 
 class AuditEvent(UUIDPk, CreatedAt, Base):

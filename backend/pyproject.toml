@@ -5,6 +5,12 @@ requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.20.1",
     "asyncpg>=0.32.0",
+    "celery[redis]>=5.7.0",
+    "docling>=2.150.0",
+    "google-cloud-storage>=3.17.1",
+    "litellm>=1.108.5",
+    "pgvector>=0.5.1",
+    "python-multipart>=0.0.33",
     "email-validator>=2.4.0",
     "fastapi>=0.165.0",
     "httpx>=0.28.1",
@@ -13,8 +19,21 @@ dependencies = [
     "pyjwt[crypto]>=2.15.1",
     "sentry-sdk>=3.0.0",
     "sqlalchemy[asyncio]>=2",
+    "torch>=2.15.0",
+    "torchvision>=0.29.2",
     "uvicorn[standard]>=0.54.0",
 ]
+
+# Docling needs torch; use the CPU-only wheels (the default ones pull in
+# several GB of CUDA libraries we never use).
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
 
 [dependency-groups]
 dev = [

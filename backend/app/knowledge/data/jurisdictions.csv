@@ -1,0 +1,319 @@
+code,parent_code,level,name
+GLOBAL,,global,Global
+EU,GLOBAL,region,European Union
+AD,GLOBAL,country,Andorra
+AE,GLOBAL,country,United Arab Emirates
+AF,GLOBAL,country,Afghanistan
+AG,GLOBAL,country,Antigua and Barbuda
+AI,GLOBAL,country,Anguilla
+AL,GLOBAL,country,Albania
+AM,GLOBAL,country,Armenia
+AO,GLOBAL,country,Angola
+AQ,GLOBAL,country,Antarctica
+AR,GLOBAL,country,Argentina
+AS,GLOBAL,country,American Samoa
+AT,EU,country,Austria
+AU,GLOBAL,country,Australia
+AW,GLOBAL,country,Aruba
+AX,GLOBAL,country,Åland Islands
+AZ,GLOBAL,country,Azerbaijan
+BA,GLOBAL,country,Bosnia and Herzegovina
+BB,GLOBAL,country,Barbados
+BD,GLOBAL,country,Bangladesh
+BE,EU,country,Belgium
+BF,GLOBAL,country,Burkina Faso
+BG,EU,country,Bulgaria
+BH,GLOBAL,country,Bahrain
+BI,GLOBAL,country,Burundi
+BJ,GLOBAL,country,Benin
+BL,GLOBAL,country,Saint Barthélemy
+BM,GLOBAL,country,Bermuda
+BN,GLOBAL,country,Brunei Darussalam
+BO,GLOBAL,country,Bolivia
+BQ,GLOBAL,country,"Bonaire, Sint Eustatius and Saba"
+BR,GLOBAL,country,Brazil
+BS,GLOBAL,country,Bahamas
+BT,GLOBAL,country,Bhutan
+BV,GLOBAL,country,Bouvet Island
+BW,GLOBAL,country,Botswana
+BY,GLOBAL,country,Belarus
+BZ,GLOBAL,country,Belize
+CA,GLOBAL,country,Canada
+CC,GLOBAL,country,Cocos (Keeling) Islands
+CD,GLOBAL,country,"Congo, The Democratic Republic of the"
+CF,GLOBAL,country,Central African Republic
+CG,GLOBAL,country,Congo
+CH,GLOBAL,country,Switzerland
+CI,GLOBAL,country,Côte d'Ivoire
+CK,GLOBAL,country,Cook Islands
+CL,GLOBAL,country,Chile
+CM,GLOBAL,country,Cameroon
+CN,GLOBAL,country,China
+CO,GLOBAL,country,Colombia
+CR,GLOBAL,country,Costa Rica
+CU,GLOBAL,country,Cuba
+CV,GLOBAL,country,Cabo Verde
+CW,GLOBAL,country,Curaçao
+CX,GLOBAL,country,Christmas Island
+CY,EU,country,Cyprus
+CZ,EU,country,Czechia
+DE,EU,country,Germany
+DJ,GLOBAL,country,Djibouti
+DK,EU,country,Denmark
+DM,GLOBAL,country,Dominica
+DO,GLOBAL,country,Dominican Republic
+DZ,GLOBAL,country,Algeria
+EC,GLOBAL,country,Ecuador
+EE,EU,country,Estonia
+EG,GLOBAL,country,Egypt
+EH,GLOBAL,country,Western Sahara
+ER,GLOBAL,country,Eritrea
+ES,EU,country,Spain
+ET,GLOBAL,country,Ethiopia
+FI,EU,country,Finland
+FJ,GLOBAL,country,Fiji
+FK,GLOBAL,country,Falkland Islands (Malvinas)
+FM,GLOBAL,country,"Micronesia, Federated States of"
+FO,GLOBAL,country,Faroe Islands
+FR,EU,country,France
+GA,GLOBAL,country,Gabon
+GB,GLOBAL,country,United Kingdom
+GD,GLOBAL,country,Grenada
+GE,GLOBAL,country,Georgia
+GF,GLOBAL,country,French Guiana
+GG,GLOBAL,country,Guernsey
+GH,GLOBAL,country,Ghana
+GI,GLOBAL,country,Gibraltar
+GL,GLOBAL,country,Greenland
+GM,GLOBAL,country,Gambia
+GN,GLOBAL,country,Guinea
+GP,GLOBAL,country,Guadeloupe
+GQ,GLOBAL,country,Equatorial Guinea
+GR,EU,country,Greece
+GS,GLOBAL,country,South Georgia and the South Sandwich Islands
+GT,GLOBAL,country,Guatemala
+GU,GLOBAL,country,Guam
+GW,GLOBAL,country,Guinea-Bissau
+GY,GLOBAL,country,Guyana
+HK,GLOBAL,country,Hong Kong
+HM,GLOBAL,country,Heard Island and McDonald Islands
+HN,GLOBAL,country,Honduras
+HR,EU,country,Croatia
+HT,GLOBAL,country,Haiti
+HU,EU,country,Hungary
+ID,GLOBAL,country,Indonesia
+IE,EU,country,Ireland
+IL,GLOBAL,country,Israel
+IM,GLOBAL,country,Isle of Man
+IN,GLOBAL,country,India
+IO,GLOBAL,country,British Indian Ocean Territory
+IQ,GLOBAL,country,Iraq
+IR,GLOBAL,country,Iran
+IS,GLOBAL,country,Iceland
+IT,EU,country,Italy
+JE,GLOBAL,country,Jersey
+JM,GLOBAL,country,Jamaica
+JO,GLOBAL,country,Jordan
+JP,GLOBAL,country,Japan
+KE,GLOBAL,country,Kenya
+KG,GLOBAL,country,Kyrgyzstan
+KH,GLOBAL,country,Cambodia
+KI,GLOBAL,country,Kiribati
+KM,GLOBAL,country,Comoros
+KN,GLOBAL,country,Saint Kitts and Nevis
+KP,GLOBAL,country,North Korea
+KR,GLOBAL,country,South Korea
+KW,GLOBAL,country,Kuwait
+KY,GLOBAL,country,Cayman Islands
+KZ,GLOBAL,country,Kazakhstan
+LA,GLOBAL,country,Laos
+LB,GLOBAL,country,Lebanon
+LC,GLOBAL,country,Saint Lucia
+LI,GLOBAL,country,Liechtenstein
+LK,GLOBAL,country,Sri Lanka
+LR,GLOBAL,country,Liberia
+LS,GLOBAL,country,Lesotho
+LT,EU,country,Lithuania
+LU,EU,country,Luxembourg
+LV,EU,country,Latvia
+LY,GLOBAL,country,Libya
+MA,GLOBAL,country,Morocco
+MC,GLOBAL,country,Monaco
+MD,GLOBAL,country,Moldova
+ME,GLOBAL,country,Montenegro
+MF,GLOBAL,country,Saint Martin (French part)
+MG,GLOBAL,country,Madagascar
+MH,GLOBAL,country,Marshall Islands
+MK,GLOBAL,country,North Macedonia
+ML,GLOBAL,country,Mali
+MM,GLOBAL,country,Myanmar
+MN,GLOBAL,country,Mongolia
+MO,GLOBAL,country,Macao
+MP,GLOBAL,country,Northern Mariana Islands
+MQ,GLOBAL,country,Martinique
+MR,GLOBAL,country,Mauritania
+MS,GLOBAL,country,Montserrat
+MT,EU,country,Malta
+MU,GLOBAL,country,Mauritius
+MV,GLOBAL,country,Maldives
+MW,GLOBAL,country,Malawi
+MX,GLOBAL,country,Mexico
+MY,GLOBAL,country,Malaysia
+MZ,GLOBAL,country,Mozambique
+NA,GLOBAL,country,Namibia
+NC,GLOBAL,country,New Caledonia
+NE,GLOBAL,country,Niger
+NF,GLOBAL,country,Norfolk Island
+NG,GLOBAL,country,Nigeria
+NI,GLOBAL,country,Nicaragua
+NL,EU,country,Netherlands
+NO,GLOBAL,country,Norway
+NP,GLOBAL,country,Nepal
+NR,GLOBAL,country,Nauru
+NU,GLOBAL,country,Niue
+NZ,GLOBAL,country,New Zealand
+OM,GLOBAL,country,Oman
+PA,GLOBAL,country,Panama
+PE,GLOBAL,country,Peru
+PF,GLOBAL,country,French Polynesia
+PG,GLOBAL,country,Papua New Guinea
+PH,GLOBAL,country,Philippines
+PK,GLOBAL,country,Pakistan
+PL,EU,country,Poland
+PM,GLOBAL,country,Saint Pierre and Miquelon
+PN,GLOBAL,country,Pitcairn
+PR,GLOBAL,country,Puerto Rico
+PS,GLOBAL,country,"Palestine, State of"
+PT,EU,country,Portugal
+PW,GLOBAL,country,Palau
+PY,GLOBAL,country,Paraguay
+QA,GLOBAL,country,Qatar
+RE,GLOBAL,country,Réunion
+RO,EU,country,Romania
+RS,GLOBAL,country,Serbia
+RU,GLOBAL,country,Russian Federation
+RW,GLOBAL,country,Rwanda
+SA,GLOBAL,country,Saudi Arabia
+SB,GLOBAL,country,Solomon Islands
+SC,GLOBAL,country,Seychelles
+SD,GLOBAL,country,Sudan
+SE,EU,country,Sweden
+SG,GLOBAL,country,Singapore
+SH,GLOBAL,country,"Saint Helena, Ascension and Tristan da Cunha"
+SI,EU,country,Slovenia
+SJ,GLOBAL,country,Svalbard and Jan Mayen
+SK,EU,country,Slovakia
+SL,GLOBAL,country,Sierra Leone
+SM,GLOBAL,country,San Marino
+SN,GLOBAL,country,Senegal
+SO,GLOBAL,country,Somalia
+SR,GLOBAL,country,Suriname
+SS,GLOBAL,country,South Sudan
+ST,GLOBAL,country,Sao Tome and Principe
+SV,GLOBAL,country,El Salvador
+SX,GLOBAL,country,Sint Maarten (Dutch part)
+SY,GLOBAL,country,Syria
+SZ,GLOBAL,country,Eswatini
+TC,GLOBAL,country,Turks and Caicos Islands
+TD,GLOBAL,country,Chad
+TF,GLOBAL,country,French Southern Territories
+TG,GLOBAL,country,Togo
+TH,GLOBAL,country,Thailand
+TJ,GLOBAL,country,Tajikistan
+TK,GLOBAL,country,Tokelau
+TL,GLOBAL,country,Timor-Leste
+TM,GLOBAL,country,Turkmenistan
+TN,GLOBAL,country,Tunisia
+TO,GLOBAL,country,Tonga
+TR,GLOBAL,country,Türkiye
+TT,GLOBAL,country,Trinidad and Tobago
+TV,GLOBAL,country,Tuvalu
+TW,GLOBAL,country,Taiwan
+TZ,GLOBAL,country,Tanzania
+UA,GLOBAL,country,Ukraine
+UG,GLOBAL,country,Uganda
+UM,GLOBAL,country,United States Minor Outlying Islands
+US,GLOBAL,country,United States
+UY,GLOBAL,country,Uruguay
+UZ,GLOBAL,country,Uzbekistan
+VA,GLOBAL,country,Holy See (Vatican City State)
+VC,GLOBAL,country,Saint Vincent and the Grenadines
+VE,GLOBAL,country,Venezuela
+VG,GLOBAL,country,"Virgin Islands, British"
+VI,GLOBAL,country,"Virgin Islands, U.S."
+VN,GLOBAL,country,Vietnam
+VU,GLOBAL,country,Vanuatu
+WF,GLOBAL,country,Wallis and Futuna
+WS,GLOBAL,country,Samoa
+YE,GLOBAL,country,Yemen
+YT,GLOBAL,country,Mayotte
+ZA,GLOBAL,country,South Africa
+ZM,GLOBAL,country,Zambia
+ZW,GLOBAL,country,Zimbabwe
+US-AK,US,state,Alaska
+US-AL,US,state,Alabama
+US-AR,US,state,Arkansas
+US-AZ,US,state,Arizona
+US-CA,US,state,California
+US-CO,US,state,Colorado
+US-CT,US,state,Connecticut
+US-DC,US,state,District of Columbia
+US-DE,US,state,Delaware
+US-FL,US,state,Florida
+US-GA,US,state,Georgia
+US-HI,US,state,Hawaii
+US-IA,US,state,Iowa
+US-ID,US,state,Idaho
+US-IL,US,state,Illinois
+US-IN,US,state,Indiana
+US-KS,US,state,Kansas
+US-KY,US,state,Kentucky
+US-LA,US,state,Louisiana
+US-MA,US,state,Massachusetts
+US-MD,US,state,Maryland
+US-ME,US,state,Maine
+US-MI,US,state,Michigan
+US-MN,US,state,Minnesota
+US-MO,US,state,Missouri
+US-MS,US,state,Mississippi
+US-MT,US,state,Montana
+US-NC,US,state,North Carolina
+US-ND,US,state,North Dakota
+US-NE,US,state,Nebraska
+US-NH,US,state,New Hampshire
+US-NJ,US,state,New Jersey
+US-NM,US,state,New Mexico
+US-NV,US,state,Nevada
+US-NY,US,state,New York
+US-OH,US,state,Ohio
+US-OK,US,state,Oklahoma
+US-OR,US,state,Oregon
+US-PA,US,state,Pennsylvania
+US-RI,US,state,Rhode Island
+US-SC,US,state,South Carolina
+US-SD,US,state,South Dakota
+US-TN,US,state,Tennessee
+US-TX,US,state,Texas
+US-UT,US,state,Utah
+US-VA,US,state,Virginia
+US-VT,US,state,Vermont
+US-WA,US,state,Washington
+US-WI,US,state,Wisconsin
+US-WV,US,state,West Virginia
+US-WY,US,state,Wyoming
+DE-BB,DE,state,Brandenburg
+DE-BE,DE,state,Berlin
+DE-BW,DE,state,Baden-Württemberg
+DE-BY,DE,state,Bayern
+DE-HB,DE,state,Bremen
+DE-HE,DE,state,Hessen
+DE-HH,DE,state,Hamburg
+DE-MV,DE,state,Mecklenburg-Vorpommern
+DE-NI,DE,state,Niedersachsen
+DE-NW,DE,state,Nordrhein-Westfalen
+DE-RP,DE,state,Rheinland-Pfalz
+DE-SH,DE,state,Schleswig-Holstein
+DE-SL,DE,state,Saarland
+DE-SN,DE,state,Sachsen
+DE-ST,DE,state,Sachsen-Anhalt
+DE-TH,DE,state,Thüringen
