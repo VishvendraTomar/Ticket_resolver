@@ -47,6 +47,11 @@ Postgres (all 78 tests pass, including RLS, catalog and cross-tenant).
   `pgvector/pgvector:0.8.1-pg16` service container. `REQUIRE_DB_TESTS=1`
   makes a missing DB config fail instead of skipping the RLS suite.
 
+- 2026-11-25: `CLERK_AUTHORIZED_PARTIES` required with Clerk outside
+  local/test (startup failure + tests; ADR-0003 amended). CI actions pinned
+  to commit SHAs (checkout v7.0.1, setup-uv v10.3.3);
+  `.github/dependabot.yml` for actions and backend (uv), weekly.
+
 ### Test status
 - **78 passed, 0 skipped** (47 offline + 31 DB: RLS, catalog,
   cross-tenant for every route, member rules). ruff and mypy strict clean.
@@ -74,8 +79,6 @@ M1: tenancy backend done and verified. Rest of M1 below.
   (also automated in `post-create.sh`): `uv export --frozen` → pip install
   with `--require-hashes` into `backend/.venv` → `uv sync --frozen --offline`.
   Cause not confirmed; worth retrying plain `uv sync` in a fresh Codespace.
-- CI actions are pinned by major tag (`checkout@v4`, `setup-uv@v6`), not
-  commit SHA. Pin to SHAs if supply-chain hardening matters now.
 - The devcontainer has not been built yet; the next Codespace is its test.
 - ADR-0001 (Neon) was **not used**: the user chose Docker in Codespaces
   instead. Marked superseded.
