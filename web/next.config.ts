@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: "/w/:workspaceId", destination: "/w/:workspaceId/members", permanent: false },
+      { source: "/w/:workspaceId", destination: "/w/:workspaceId/documents", permanent: false },
     ];
   },
 };

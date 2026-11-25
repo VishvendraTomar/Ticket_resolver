@@ -42,3 +42,8 @@ export function assignableRoles(actor: Role): Role[] {
 export function canEditMember(actor: Role, memberRole: Role): boolean {
   return canManageMembers(actor) && canAssignRole(actor, memberRole);
 }
+
+/** Who may upload, tag and publish (backend/app/knowledge/service.py EDITORS). */
+export function canEditKnowledge(role: Role): boolean {
+  return role === "owner" || role === "admin" || role === "policy_editor";
+}

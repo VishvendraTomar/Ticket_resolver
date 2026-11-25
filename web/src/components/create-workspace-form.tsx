@@ -23,9 +23,11 @@ export function CreateWorkspaceForm() {
     try {
       const ws = await api.createWorkspace(name.trim());
       me.reload();
-      router.push(`/w/${ws.id}/members`);
+      setName(""); // this page may stay mounted (hidden) after navigating
+      router.push(`/w/${ws.id}/documents`);
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Couldn't create the workspace");
+    } finally {
       setBusy(false);
     }
   }

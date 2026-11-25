@@ -159,6 +159,25 @@ function MemberRow({
   }
 
   const who = member.user.name || member.user.email || "Unknown user";
+  const [codes, setCodes] = useState((member.jurisdiction_codes ?? []).join(", "));
+
+  async function saveJurisdictions() {
+    const list = codes
+      .split(",")
+      .map((c) => c.trim().toUpperCase())
+      .filter(Boolean);
+    setBusy(true);
+    try {
+      await api.setMemberJurisdictions(workspace.id, member.id, list.length ? list : null);
+      toast.success(list.length ? `Limited to ${list.join(", ")}` : "No jurisdiction limits");
+      onChanged();
+    } catch (err) {
+      toast.error(errorMessage(err, "Couldn't save the jurisdictions"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <TableRow>
       <TableCell>
@@ -168,6 +187,27 @@ function MemberRow({
         {member.user.name && member.user.email && (
           <div className="text-xs text-muted-foreground">{member.user.email}</div>
         )}
+        {member.role === "policy_editor" &&
+          (editable ? (
+            <div className="mt-1 flex items-center gap-1">
+              <Input
+                aria-label={`Jurisdictions ${who} may edit`}
+                className="h-7 w-44 text-xs"
+                placeholder="All jurisdictions (e.g. DE, FR)"
+                value={codes}
+                onChange={(e) => setCodes(e.target.value)}
+              />
+              <Button size="xs" variant="outline" onClick={saveJurisdictions} disabled={busy}>
+                Save
+              </Button>
+            </div>
+          ) : (
+            member.jurisdiction_codes && (
+              <div className="text-xs text-muted-foreground">
+                Only {member.jurisdiction_codes.join(", ")}
+              </div>
+            )
+          ))}
       </TableCell>
       <TableCell>
         {editable ? (

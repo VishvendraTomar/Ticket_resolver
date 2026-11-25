@@ -23,3 +23,10 @@ describe("role rules (mirror backend/app/tenancy/roles.py)", () => {
     expect(canEditMember("agent", "viewer")).toBe(false);
   });
 });
+
+describe("knowledge-base editors (mirror backend EDITORS)", () => {
+  it("owners, admins and policy editors edit; others read", async () => {
+    const { canEditKnowledge } = await import("@/lib/roles");
+    expect(ROLES.filter(canEditKnowledge)).toEqual(["owner", "admin", "policy_editor"]);
+  });
+});

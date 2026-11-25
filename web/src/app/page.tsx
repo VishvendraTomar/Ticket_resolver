@@ -15,7 +15,7 @@ function Home() {
   const first = me.data?.workspaces[0];
 
   useEffect(() => {
-    if (first) router.replace(`/w/${first.id}/members`);
+    if (first) router.replace(`/w/${first.id}/documents`);
   }, [first, router]);
 
   if (me.error) return <ErrorCard error={me.error} />;

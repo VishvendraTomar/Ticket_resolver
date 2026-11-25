@@ -47,7 +47,7 @@ function WorkspaceSwitcher({ current, all }: { current: MyWorkspace; all: MyWork
         {all.map((ws) => (
           <DropdownMenuItem
             key={ws.id}
-            onSelect={() => router.push(`/w/${ws.id}/members`)}
+            onSelect={() => router.push(`/w/${ws.id}/documents`)}
             className="justify-between"
           >
             <span className="truncate">{ws.name}</span>
@@ -120,6 +120,12 @@ function Shell({ children }: { children: ReactNode }) {
           <WorkspaceSwitcher current={current} all={me.data?.workspaces ?? []} />
         </div>
         <nav className="flex items-center gap-1">
+          <Button asChild variant="ghost" size="sm">
+            <Link href={`/w/${current.id}/documents`}>Documents</Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link href={`/w/${current.id}/coverage`}>Coverage</Link>
+          </Button>
           <Button asChild variant="ghost" size="sm">
             <Link href={`/w/${current.id}/members`}>Members</Link>
           </Button>
