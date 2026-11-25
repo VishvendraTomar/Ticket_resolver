@@ -27,7 +27,7 @@
   "devDependencies": {
     "@next/env": "16.4.6",
     "@tailwindcss/turbopack": "4.3.3",
-    "@types/node": "24.19.4",
+    "@types/node": "26.6.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
