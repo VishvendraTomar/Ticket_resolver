@@ -1,9 +1,10 @@
 # ADR-0001 (temporary): Neon Postgres instead of Docker Compose for development
 
-- Status: **Superseded before use** (2026-11-25). Development moved to a GitHub
-  Codespace with Docker, so the database is Compose Postgres 16 as the spec
-  intended. Kept for the record; the guardrails it introduced (app_user created
-  by migration SQL, the no-BYPASSRLS test) stay regardless of host.
+- Status: **Superseded** by [ADR-0005](0005-local-docker-postgres.md)
+  (2026-11-25), before it was used. Development moved to a GitHub Codespace
+  with Docker, so the database is Compose Postgres 16 as the spec intended.
+  Kept for the record; the guardrails it introduced (app_user created by
+  migration SQL, the no-BYPASSRLS test) stay regardless of host.
 - Date: 2026-11-25
 
 ## Context
