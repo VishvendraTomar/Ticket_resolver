@@ -22,6 +22,7 @@ data belonging to workspace B**, whatever bug exists in a query or a route.
 | 12 | The last owner removes or demotes themselves, leaving a workspace nobody can manage | Service check | 409 Conflict | `test_members.py::test_cannot_remove_last_owner` |
 | 13 | Fake auth is enabled in a real environment | Settings validation at startup | App refuses to start with `AUTH_PROVIDER=fake` unless `ENVIRONMENT` is `local` or `test` | `test_config.py::test_fake_auth_refused_outside_local` |
 | 14 | Membership is checked at the app layer only; a bug there would let A set B's context | Cross-tenant suite on every route (#8, #10) | Known limit, recorded in ADR-0002: RLS scopes to the *current* workspace; membership is enforced in one dependency that every tenant route uses | `test_cross_tenant.py` |
+| 15 | A token minted for a different Clerk app/origin is accepted because `CLERK_AUTHORIZED_PARTIES` is empty (the `azp` check switches off) | Settings validation at startup | App refuses to start with `AUTH_PROVIDER=clerk` outside local/test unless the list is non-empty; wrong or missing `azp` → 401 | `test_config.py::test_clerk_needs_authorized_parties_outside_local`, `test_auth.py` (azp cases) |
 
 ## Not covered yet (later milestones)
 - Background jobs (Celery) setting context: M2, same helper, tested then.

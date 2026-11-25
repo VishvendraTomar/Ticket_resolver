@@ -62,16 +62,18 @@ class Settings(BaseSettings):
             Environment.TEST,
         ):
             raise ValueError("AUTH_PROVIDER=fake is only allowed when ENVIRONMENT is local or test")
-        if (
-            self.auth_provider is AuthProvider.CLERK
-            and self.environment
-            in (
-                Environment.STAGING,
-                Environment.PRODUCTION,
-            )
-            and not self.clerk_issuer
+        if self.auth_provider is AuthProvider.CLERK and self.environment not in (
+            Environment.LOCAL,
+            Environment.TEST,
         ):
-            raise ValueError("CLERK_ISSUER is required when AUTH_PROVIDER=clerk")
+            if not self.clerk_issuer:
+                raise ValueError("CLERK_ISSUER is required when AUTH_PROVIDER=clerk")
+            # An empty list would switch the azp check off (ADR-0003).
+            if not self.authorized_parties:
+                raise ValueError(
+                    "CLERK_AUTHORIZED_PARTIES is required when AUTH_PROVIDER=clerk "
+                    "outside local/test"
+                )
         return self
 
     @property

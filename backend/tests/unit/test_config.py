@@ -44,3 +44,32 @@ def test_clerk_needs_issuer_in_production() -> None:
         Settings(
             environment=Environment.PRODUCTION, auth_provider=AuthProvider.CLERK, _env_file=None
         )  # type: ignore[call-arg]
+
+
+@pytest.mark.parametrize("parties", ["", " , "])
+@pytest.mark.parametrize("env", [Environment.STAGING, Environment.PRODUCTION])
+def test_clerk_needs_authorized_parties_outside_local(env: Environment, parties: str) -> None:
+    with pytest.raises(ValidationError, match="CLERK_AUTHORIZED_PARTIES"):
+        Settings(
+            environment=env,
+            auth_provider=AuthProvider.CLERK,
+            clerk_issuer="https://example.clerk.accounts.dev",
+            clerk_authorized_parties=parties,
+            _env_file=None,
+        )  # type: ignore[call-arg]
+
+
+def test_clerk_with_issuer_and_parties_is_accepted_in_production() -> None:
+    s = Settings(
+        environment=Environment.PRODUCTION,
+        auth_provider=AuthProvider.CLERK,
+        clerk_issuer="https://example.clerk.accounts.dev",
+        clerk_authorized_parties="https://app.example.com",
+        _env_file=None,
+    )  # type: ignore[call-arg]
+    assert s.authorized_parties == ["https://app.example.com"]
+
+
+@pytest.mark.parametrize("env", [Environment.LOCAL, Environment.TEST])
+def test_clerk_without_parties_allowed_locally(env: Environment) -> None:
+    Settings(environment=env, auth_provider=AuthProvider.CLERK, _env_file=None)  # type: ignore[call-arg]

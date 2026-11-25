@@ -59,6 +59,8 @@ an authorisation bug.
   token expires (Clerk's default is about a minute), plus leeway.
 - **No deletion sync yet.** Deleting a user in Clerk doesn't remove our row;
   they just can't sign in. Account deletion and GDPR erasure are M6.
-- **`azp` check:** an empty `CLERK_AUTHORIZED_PARTIES` currently disables it.
-  It should be required whenever `AUTH_PROVIDER=clerk` outside local/test;
-  tracked as an open question in PROGRESS.md.
+- **`azp` check is mandatory outside local/test.** An empty
+  `CLERK_AUTHORIZED_PARTIES` would switch it off, so settings refuse to
+  start when `AUTH_PROVIDER=clerk`, `ENVIRONMENT` is staging or production,
+  and the list is empty (amended 2026-11-25). Locally it may stay empty for
+  ad-hoc testing against a Clerk dev instance.

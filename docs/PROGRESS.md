@@ -74,9 +74,6 @@ M1: tenancy backend done and verified. Rest of M1 below.
   (also automated in `post-create.sh`): `uv export --frozen` → pip install
   with `--require-hashes` into `backend/.venv` → `uv sync --frozen --offline`.
   Cause not confirmed; worth retrying plain `uv sync` in a fresh Codespace.
-- `azp` check is skipped when `CLERK_AUTHORIZED_PARTIES` is empty
-  (ADR-0003). Proposal: make it required when `AUTH_PROVIDER=clerk`
-  outside local/test. Needs your OK; not changed yet.
 - CI actions are pinned by major tag (`checkout@v4`, `setup-uv@v6`), not
   commit SHA. Pin to SHAs if supply-chain hardening matters now.
 - The devcontainer has not been built yet; the next Codespace is its test.
