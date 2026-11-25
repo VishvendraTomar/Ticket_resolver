@@ -52,6 +52,9 @@ Postgres (all 78 tests pass, including RLS, catalog and cross-tenant).
   to commit SHAs (checkout v7.0.1, setup-uv v10.3.3);
   `.github/dependabot.yml` for actions and backend (uv), weekly.
 
+- 2026-11-25: ADR-0004 (provider interfaces) and ADR-0005 (local Docker
+  Postgres; supersedes ADR-0001).
+
 ### Test status
 - **78 passed, 0 skipped** (47 offline + 31 DB: RLS, catalog,
   cross-tenant for every route, member rules). ruff and mypy strict clean.
@@ -68,8 +71,7 @@ Postgres (all 78 tests pass, including RLS, catalog and cross-tenant).
 M1: tenancy backend done and verified. Rest of M1 below.
 
 ## Next step
-1. ADR-0004: provider interfaces (PLAN M1 docs list).
-2. Web shell (Next.js + Clerk; Node LTS), api/web Dockerfiles and their
+1. Web shell (Next.js + Clerk; Node LTS), api/web Dockerfiles and their
    compose services, `seed/demo_m1.py`. Add a `web` CI job (lint,
    typecheck, build) with it.
 
