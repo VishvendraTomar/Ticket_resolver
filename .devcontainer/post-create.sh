@@ -9,8 +9,7 @@ if [[ ! -f .env ]]; then
   owner_pw=$(rand 32)
   app_pw=$(rand 40)
   sed -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${owner_pw}|" \
-      -e "s|^DATABASE_URL=.*|DATABASE_URL=postgresql://owner:${owner_pw}@localhost:5432/ticket_resolver|" \
-      -e "s|^APP_DATABASE_URL=.*|APP_DATABASE_URL=postgresql://app_user:${app_pw}@localhost:5432/ticket_resolver|" \
+      -e "s|^APP_DB_PASSWORD=.*|APP_DB_PASSWORD=${app_pw}|" \
       -e "s|^AUTH_PROVIDER=.*|AUTH_PROVIDER=fake|" \
       .env.example > .env
   chmod 600 .env
@@ -32,7 +31,7 @@ if [[ "$synced" != true ]]; then
   reqs=$(mktemp)
   uv export --frozen --no-emit-project -q > "$reqs"
   uv venv --allow-existing -q
-  .venv/bin/python -m ensurepip -q
+  .venv/bin/python -m ensurepip > /dev/null
   .venv/bin/python -m pip install -q --require-hashes --no-deps -r "$reqs"
   rm -f "$reqs"
   uv sync --frozen --offline
@@ -42,7 +41,17 @@ cd ..
 # 3. Web app dependencies (locked).
 (cd web && npm ci --no-audit --no-fund)
 
-# 4. Database: start Compose and migrate (creates app_user with NOBYPASSRLS).
+# 4. Git hooks (pre-commit). Falls back to pip for the same uv TLS issue.
+if ! command -v pre-commit >/dev/null; then
+  uv tool install pre-commit \
+    || { python3 -m venv "$HOME/.local/pre-commit-venv" \
+         && "$HOME/.local/pre-commit-venv/bin/pip" install -q pre-commit \
+         && mkdir -p "$HOME/.local/bin" \
+         && ln -sf "$HOME/.local/pre-commit-venv/bin/pre-commit" "$HOME/.local/bin/pre-commit"; }
+fi
+"$HOME/.local/bin/pre-commit" install || pre-commit install
+
+# 5. Database: start Compose and migrate (creates app_user with NOBYPASSRLS).
 docker compose up -d --wait
 (cd backend && uv run --frozen alembic upgrade head)
 

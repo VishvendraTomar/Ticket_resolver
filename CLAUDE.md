@@ -31,7 +31,9 @@ Later: GCP (Cloud Run, Cloud SQL, Memorystore, Cloud Storage)
 
 ## Commands (keep this list current as they're created)
 - First-time setup (devcontainer runs it): bash .devcontainer/post-create.sh
-- Start services: docker compose up -d
+- Start services: docker compose up -d   (Postgres + Redis; dev servers run natively)
+- Full stack in containers: docker compose --profile app up -d --build   (migrate, api :8000, web :3000)
+- Git hooks: pre-commit install   (config: .pre-commit-config.yaml; run all: pre-commit run --all-files)
 - Backend tests: cd backend && uv run pytest
 - Lint and types: uv run ruff check . && uv run mypy app
 - Migrations: uv run alembic upgrade head

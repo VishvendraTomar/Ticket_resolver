@@ -23,6 +23,14 @@ available. SPEC §19 and PLAN M1 assume Docker Compose locally.
 - The devcontainer (`.devcontainer/devcontainer.json`) provides uv-managed
   Python 3.12, Node LTS and Docker-in-Docker. It starts Compose and runs the
   migrations on creation.
+- `docker compose --profile app up -d --build` also runs the app in
+  containers: a one-shot `migrate` service (the only one given owner
+  credentials), `api` (app_user only, no `env_file`) and `web`. Without the
+  profile, Compose starts only Postgres and Redis, and the dev servers run
+  natively.
+- `.env` holds each password once (`POSTGRES_PASSWORD`, `APP_DB_PASSWORD`).
+  The connection URLs are built from them with `${VAR}`, which the API,
+  Compose and Next.js all expand.
 - **CI uses the same image** as a service container, with throwaway
   credentials, so CI and development run the same Postgres and pgvector.
 

@@ -111,3 +111,20 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  images:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate compose file
+        env:
+          APP_DB_PASSWORD: ci_only
+        run: docker compose --profile app config --quiet
+
+      - name: Build API image
+        run: docker build -t ticket-resolver-api:ci backend
+
+      - name: Build web image
+        run: docker build -t ticket-resolver-web:ci web

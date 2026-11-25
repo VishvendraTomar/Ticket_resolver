@@ -1,0 +1,46 @@
+# Install once: `uv tool install pre-commit && pre-commit install`
+# (the devcontainer does this). Hooks call the project's own pinned tools, so
+# nothing is downloaded from hook repos and results match CI.
+repos:
+  - repo: local
+    hooks:
+      - id: no-env-file
+        name: never commit .env
+        language: fail
+        entry: ".env holds secrets; commit .env.example instead"
+        files: '(^|/)\.env$'
+
+      - id: ruff
+        name: ruff (backend, seed)
+        language: system
+        entry: bash -c 'cd backend && uv run --frozen ruff check . ../seed'
+        files: '^(backend|seed)/.*\.py$'
+        pass_filenames: false
+
+      - id: ruff-format
+        name: ruff format (backend, seed)
+        language: system
+        entry: bash -c 'cd backend && uv run --frozen ruff format --check . ../seed'
+        files: '^(backend|seed)/.*\.py$'
+        pass_filenames: false
+
+      - id: mypy
+        name: mypy (backend/app, strict)
+        language: system
+        entry: bash -c 'cd backend && uv run --frozen mypy app'
+        files: '^backend/app/.*\.py$'
+        pass_filenames: false
+
+      - id: web-lint
+        name: eslint (web)
+        language: system
+        entry: bash -c 'cd web && npm run --silent lint'
+        files: '^web/.*\.(ts|tsx|mjs|js)$'
+        pass_filenames: false
+
+      - id: web-typecheck
+        name: typecheck (web)
+        language: system
+        entry: bash -c 'cd web && npm run --silent typecheck'
+        files: '^web/.*\.(ts|tsx)$'
+        pass_filenames: false

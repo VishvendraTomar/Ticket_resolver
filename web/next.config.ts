@@ -8,6 +8,7 @@ import type { NextConfig } from "next";
 loadEnvConfig(path.resolve(process.cwd(), ".."));
 
 const nextConfig: NextConfig = {
+  output: "standalone", // self-contained server for the Docker image
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

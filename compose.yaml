@@ -1,11 +1,16 @@
-# Local development stack. `docker compose up -d` from the repo root.
-# M1 runs postgres + redis; api and web join once they have Dockerfiles,
-# and further services arrive in the milestone that first needs them (PLAN.md M1).
+# Local development stack, from the repo root.
+#
+#   docker compose up -d                        # postgres + redis (dev servers run natively)
+#   docker compose --profile app up -d --build  # + migrate, api, web in containers
 #
 # Postgres superuser = the owner role (DATABASE_URL). The app role `app_user`
-# (NOBYPASSRLS) is created by `uv run alembic upgrade head`, not here.
+# (NOBYPASSRLS) is created by the migration, never here. Only the one-shot
+# `migrate` service gets owner credentials; `api` gets app_user only (ADR-0002).
+# Further services arrive in the milestone that first needs them (PLAN.md).
 
 name: ticket-resolver
+
+x-db-name: &db_name ${POSTGRES_DB:-ticket_resolver}
 
 services:
   postgres:
@@ -13,7 +18,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-owner}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-owner_local_only}
-      POSTGRES_DB: ${POSTGRES_DB:-ticket_resolver}
+      POSTGRES_DB: *db_name
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -33,6 +38,57 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
+  migrate:
+    profiles: [app]
+    build: ./backend
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-local}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-owner}:${POSTGRES_PASSWORD:-owner_local_only}@postgres:5432/${POSTGRES_DB:-ticket_resolver}
+      APP_DATABASE_URL: postgresql://app_user:${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-ticket_resolver}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    profiles: [app]
+    build: ./backend
+    # Explicit list, no env_file: the owner DATABASE_URL must never reach the app.
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-local}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      APP_DATABASE_URL: postgresql://app_user:${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-ticket_resolver}
+      AUTH_PROVIDER: ${AUTH_PROVIDER:-fake}
+      CLERK_ISSUER: ${CLERK_ISSUER:-}
+      CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES:-http://localhost:3000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    profiles: [app]
+    build:
+      context: ./web
+      args:
+        # The browser calls the API on the host's published port.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+        NEXT_PUBLIC_AUTH_PROVIDER: ${NEXT_PUBLIC_AUTH_PROVIDER:-}
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   pgdata:

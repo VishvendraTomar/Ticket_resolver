@@ -64,6 +64,12 @@ Postgres (all 78 tests pass, including RLS, catalog and cross-tenant).
   headless Chromium against the real API (12 steps incl. cross-tenant URL →
   "Not found", viewer read-only, last-owner 409).
 
+- 2026-11-25: M1 close-out: failure-modes/tenancy.md completed (28 rows,
+  every cited test verified); `seed/demo_m1.py` (+ a db test that runs it);
+  compose `app` profile with Dockerfiles for api/web and a one-shot
+  `migrate` service; pre-commit (local hooks); CI `images` job (compose
+  config + both image builds); Dependabot for Docker base images.
+
 ### Test status
 - **78 passed, 0 skipped** (47 offline + 31 DB: RLS, catalog,
   cross-tenant for every route, member rules). ruff and mypy strict clean.
@@ -109,6 +115,21 @@ Reversible choices made without asking (M1 close-out instructions).
   16.4.6, @clerk/nextjs 7.9.25, shadcn 4.23.0, Vitest 5.1.0; actions
   checkout v7.0.1, setup-uv v10.3.3, setup-node v7.1.0). `@types/node` 24
   to match Node 24 LTS (required by Vitest 5).
+- **Compose `app` profile:** api/web/migrate run only with
+  `--profile app`, so plain `docker compose up -d` and the devcontainer
+  stay fast and don't take ports 3000/8000 from native dev servers.
+- **Owner credentials only in `migrate`:** the `api` container gets an
+  explicit env list (no `env_file`) with app_user only.
+- **Single-password `.env`:** `APP_DB_PASSWORD` plus `${VAR}`-built URLs
+  replace two hand-written URLs; the post-create script generates both
+  passwords.
+- **Dockerfile pip fallback:** the API image tries `uv sync` and falls back
+  to pip with the same hash-locked set (the Codespace uv TLS issue also hits
+  `docker build`). On GitHub the uv path is used.
+- **pre-commit with local hooks only** (ruff, format, mypy, eslint, web
+  typecheck, and a guard against committing `.env`), using the project's
+  pinned tools. It's installed outside the project's dependencies, so
+  `uv.lock` is unchanged.
 - **CI concurrency:** superseded PR runs are cancelled; every push to main
   runs to completion.
 
