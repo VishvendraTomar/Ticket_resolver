@@ -94,7 +94,7 @@ for every role, the owner included.
   explicit grants in its migration. The catalog test fails the build until
   all four are present.
 - RLS covers the *current* workspace. Which workspace a user may enter is an
-  app-layer membership check (failure mode #14). It sits in one dependency
+  app-layer membership check (failure mode #16). It sits in one dependency
   that every tenant route uses, and the cross-tenant suite covers every route.
 - Policy subqueries on `memberships` cost an index lookup per row checked
   (`ix_memberships_user_id`, unique `(workspace_id, user_id)`). Re-check query
