@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      # Same image as compose.yaml. Credentials are throwaway: this container
+      # exists only for the job, so they are not secrets.
+      postgres:
+        image: pgvector/pgvector:0.8.1-pg16
+        env:
+          POSTGRES_USER: owner
+          POSTGRES_PASSWORD: ci_owner_password
+          POSTGRES_DB: ticket_resolver
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U owner -d ticket_resolver"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+
+    env:
+      ENVIRONMENT: test
+      AUTH_PROVIDER: fake
+      DATABASE_URL: postgresql://owner:ci_owner_password@localhost:5432/ticket_resolver
+      APP_DATABASE_URL: postgresql://app_user:ci_app_user_password@localhost:5432/ticket_resolver
+      # Missing DB config must fail the build, never skip the RLS suite.
+      REQUIRE_DB_TESTS: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.10"
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      - name: Install Python and locked dependencies
+        run: |
+          uv python install
+          uv sync --frozen
+
+      - name: Ruff
+        run: |
+          uv run --frozen ruff check .
+          uv run --frozen ruff format --check .
+
+      - name: Mypy
+        run: uv run --frozen mypy app
+
+      - name: Migrations (upgrade, full downgrade, upgrade)
+        run: |
+          uv run --frozen alembic upgrade head
+          uv run --frozen alembic downgrade base
+          uv run --frozen alembic upgrade head
+
+      - name: Tests (unit, RLS, catalog, cross-tenant)
+        run: uv run --frozen pytest -rs

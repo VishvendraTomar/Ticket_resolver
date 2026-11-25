@@ -40,6 +40,11 @@ def _db_configured() -> bool:
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     if _db_configured():
         return
+    if os.environ.get("REQUIRE_DB_TESTS") == "1":
+        # CI sets this: a missing database must fail the build, not skip the RLS suite.
+        raise pytest.UsageError(
+            "REQUIRE_DB_TESTS=1 but DATABASE_URL / APP_DATABASE_URL are not set"
+        )
     skip = pytest.mark.skip(
         reason="DB tests need DATABASE_URL and APP_DATABASE_URL (see .env.example, ADR-0001)"
     )

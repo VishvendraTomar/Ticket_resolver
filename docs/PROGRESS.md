@@ -39,6 +39,14 @@ Postgres (all 78 tests pass, including RLS, catalog and cross-tenant).
   - `.devcontainer/` (uv-managed Python 3.12, Node LTS, Docker-in-Docker);
     `post-create.sh` writes `.env`, syncs deps, starts Compose, migrates.
 
+- 2026-11-25: ADR-0002 (RLS mechanism) and ADR-0003 (Clerk identity-only).
+  Numbering shifted by one from PLAN M1 (0001 went to Neon), so the
+  provider-interfaces ADR will be ADR-0004.
+- 2026-11-25: CI (`.github/workflows/ci.yml`, backend job): ruff, format
+  check, mypy, migration upgrade → downgrade → upgrade, pytest against a
+  `pgvector/pgvector:0.8.1-pg16` service container. `REQUIRE_DB_TESTS=1`
+  makes a missing DB config fail instead of skipping the RLS suite.
+
 ### Test status
 - **78 passed, 0 skipped** (47 offline + 31 DB: RLS, catalog,
   cross-tenant for every route, member rules). ruff and mypy strict clean.
@@ -55,12 +63,10 @@ Postgres (all 78 tests pass, including RLS, catalog and cross-tenant).
 M1: tenancy backend done and verified. Rest of M1 below.
 
 ## Next step
-1. Write ADR-0002 (RLS mechanism) and ADR-0003 (Clerk identity-only) — the
-   code references them but they're not written.
-2. CI (GitHub Actions with a Postgres service container running the same
-   pgvector image) so the DB tests run on every push.
-3. Web shell (Next.js + Clerk; Node LTS), api/web Dockerfiles and their
-   compose services, `seed/demo_m1.py`, PROGRESS update.
+1. ADR-0004: provider interfaces (PLAN M1 docs list).
+2. Web shell (Next.js + Clerk; Node LTS), api/web Dockerfiles and their
+   compose services, `seed/demo_m1.py`. Add a `web` CI job (lint,
+   typecheck, build) with it.
 
 ## Open questions / notes
 - **uv ↔ PyPI TLS stall in this Codespace**: `uv sync` connects over TCP
@@ -68,6 +74,11 @@ M1: tenancy backend done and verified. Rest of M1 below.
   (also automated in `post-create.sh`): `uv export --frozen` → pip install
   with `--require-hashes` into `backend/.venv` → `uv sync --frozen --offline`.
   Cause not confirmed; worth retrying plain `uv sync` in a fresh Codespace.
+- `azp` check is skipped when `CLERK_AUTHORIZED_PARTIES` is empty
+  (ADR-0003). Proposal: make it required when `AUTH_PROVIDER=clerk`
+  outside local/test. Needs your OK; not changed yet.
+- CI actions are pinned by major tag (`checkout@v4`, `setup-uv@v6`), not
+  commit SHA. Pin to SHAs if supply-chain hardening matters now.
 - The devcontainer has not been built yet; the next Codespace is its test.
 - ADR-0001 (Neon) was **not used**: the user chose Docker in Codespaces
   instead. Marked superseded.
