@@ -62,8 +62,8 @@ jobs:
 
       - name: Ruff
         run: |
-          uv run --frozen ruff check .
-          uv run --frozen ruff format --check .
+          uv run --frozen ruff check . ../seed
+          uv run --frozen ruff format --check . ../seed
 
       - name: Mypy
         run: uv run --frozen mypy app
