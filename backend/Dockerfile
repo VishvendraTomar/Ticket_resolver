@@ -29,7 +29,9 @@ COPY alembic.ini ./
 COPY alembic ./alembic
 COPY app ./app
 
-RUN useradd --system --uid 10001 --no-create-home app
+RUN useradd --system --uid 10001 --no-create-home app \
+ && mkdir -p /data/uploads /data/hf-cache \
+ && chown -R app /data
 USER app
 
 EXPOSE 8000

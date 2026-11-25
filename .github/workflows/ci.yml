@@ -74,7 +74,15 @@ jobs:
           uv run --frozen alembic downgrade base
           uv run --frozen alembic upgrade head
 
-      - name: Tests (unit, RLS, catalog, cross-tenant)
+      - name: Start Cloud Storage emulator
+        run: |
+          docker run -d --name fake-gcs -p 4443:4443 fsouza/fake-gcs-server:1.56.1 \
+            -scheme http -port 4443 -backend memory
+          for i in $(seq 1 30); do curl -sf http://localhost:4443/storage/v1/b && break; sleep 1; done
+
+      - name: Tests (unit, RLS, catalog, cross-tenant, ingestion)
+        env:
+          STORAGE_EMULATOR_HOST: http://localhost:4443
         run: uv run --frozen pytest -rs
 
   web:

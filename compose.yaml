@@ -39,6 +39,14 @@ services:
       timeout: 3s
       retries: 30
 
+  # Cloud Storage emulator (PLAN M2): STORAGE_PROVIDER=gcs + STORAGE_EMULATOR_HOST.
+  fake-gcs:
+    image: fsouza/fake-gcs-server:1.56.1
+    command: ["-scheme", "http", "-port", "4443", "-external-url", "http://localhost:4443",
+              "-backend", "memory"]
+    ports:
+      - "127.0.0.1:4443:4443"
+
   migrate:
     profiles: [app]
     build: ./backend
@@ -64,6 +72,14 @@ services:
       CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES:-http://localhost:3000}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       SENTRY_DSN: ${SENTRY_DSN:-}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      STORAGE_LOCAL_DIR: /data/uploads
+      EMBEDDINGS_PROVIDER: ${EMBEDDINGS_PROVIDER:-fake}
+      LLM_PROVIDER: ${LLM_PROVIDER:-fake}
+      VERTEX_PROJECT: ${VERTEX_PROJECT:-}
+    volumes:
+      - uploads:/data/uploads
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -74,6 +90,36 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+  # Ingestion worker (ADR-0007): same image as the API; Docling runs here, not in the API.
+  worker:
+    profiles: [app]
+    build: ./backend
+    command: ["celery", "-A", "workers.celery_app", "worker", "-Q", "ingestion,maintenance",
+              "-c", "2", "--loglevel", "INFO"]
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-local}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      APP_DATABASE_URL: postgresql://app_user:${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-ticket_resolver}
+      CELERY_BROKER_URL: redis://redis:6379/0
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-local}
+      STORAGE_LOCAL_DIR: /data/uploads
+      PARSER_PROVIDER: ${PARSER_PROVIDER:-docling}
+      EMBEDDINGS_PROVIDER: ${EMBEDDINGS_PROVIDER:-fake}
+      LLM_PROVIDER: ${LLM_PROVIDER:-fake}
+      VERTEX_PROJECT: ${VERTEX_PROJECT:-}
+      EMBEDDINGS_LOCATION: ${EMBEDDINGS_LOCATION:-europe-west4}
+      LLM_SMALL_MODEL: ${LLM_SMALL_MODEL:-vertex_ai/gemini-3.5-flash}
+      LLM_LOCATION: ${LLM_LOCATION:-europe-west3}
+      HF_HOME: /data/hf-cache  # Docling's models, downloaded once
+    volumes:
+      - uploads:/data/uploads
+      - hfcache:/data/hf-cache
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
   web:
     profiles: [app]
@@ -92,3 +138,5 @@ services:
 
 volumes:
   pgdata:
+  uploads:
+  hfcache:
