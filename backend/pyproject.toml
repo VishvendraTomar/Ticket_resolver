@@ -51,6 +51,8 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S", "ASYNC", "RUF", "SIM", "PT"]
 ignore = ["S101"] # assert is fine in tests
+# "›" separates heading paths in context headers (SPEC §7); "–" in prose ranges.
+allowed-confusables = ["›", "–"]
 
 [tool.ruff.lint.isort]
 known-third-party = ["alembic"]
