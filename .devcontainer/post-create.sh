@@ -39,7 +39,10 @@ if [[ "$synced" != true ]]; then
 fi
 cd ..
 
-# 3. Database: start Compose and migrate (creates app_user with NOBYPASSRLS).
+# 3. Web app dependencies (locked).
+(cd web && npm ci --no-audit --no-fund)
+
+# 4. Database: start Compose and migrate (creates app_user with NOBYPASSRLS).
 docker compose up -d --wait
 (cd backend && uv run --frozen alembic upgrade head)
 

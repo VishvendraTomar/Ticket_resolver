@@ -35,7 +35,8 @@ Later: GCP (Cloud Run, Cloud SQL, Memorystore, Cloud Storage)
 - Backend tests: cd backend && uv run pytest
 - Lint and types: uv run ruff check . && uv run mypy app
 - Migrations: uv run alembic upgrade head
-- Frontend: cd web && npm run dev
+- Frontend: cd web && npm run dev   (API: cd backend && uv run uvicorn app.main:app --reload)
+- Frontend checks: cd web && npm run lint && npm run typecheck && npm test && npm run build
 
 ## End of every session
 Update docs/PROGRESS.md: done, in progress, next step, open questions.

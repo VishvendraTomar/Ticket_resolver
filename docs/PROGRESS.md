@@ -55,6 +55,15 @@ Postgres (all 78 tests pass, including RLS, catalog and cross-tenant).
 - 2026-11-25: ADR-0004 (provider interfaces) and ADR-0005 (local Docker
   Postgres; supersedes ADR-0001).
 
+- 2026-11-25: Web shell (`web/`): Next.js 16.4 App Router, TypeScript,
+  Tailwind 4, shadcn/ui (Radix). Sign-in, workspace switcher (+ create
+  workspace), members page (list, add, change role, remove/leave with
+  confirm). Auth behind `AuthClient` with Clerk and fake implementations;
+  fake is used when no Clerk key is set. Vitest unit tests (14). CI `web`
+  job: lint, typecheck, unit tests, build. Smoke-tested end to end in
+  headless Chromium against the real API (12 steps incl. cross-tenant URL →
+  "Not found", viewer read-only, last-owner 409).
+
 ### Test status
 - **78 passed, 0 skipped** (47 offline + 31 DB: RLS, catalog,
   cross-tenant for every route, member rules). ruff and mypy strict clean.
@@ -74,6 +83,34 @@ M1: tenancy backend done and verified. Rest of M1 below.
 1. Web shell (Next.js + Clerk; Node LTS), api/web Dockerfiles and their
    compose services, `seed/demo_m1.py`. Add a `web` CI job (lint,
    typecheck, build) with it.
+
+## Decisions made — review
+Reversible choices made without asking (M1 close-out instructions).
+- **Web auth selection:** Clerk if `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is set,
+  else the fake dev sign-in (`NEXT_PUBLIC_AUTH_PROVIDER` overrides). A
+  yellow banner marks fake mode. The backend is the real guard: it refuses
+  fake tokens outside ENVIRONMENT=local/test.
+- **No Next.js `proxy.ts` (ex-middleware), Clerk client-side only:** the
+  browser calls FastAPI directly with a bearer token, so no server-side
+  Clerk is needed yet. `<ClerkProvider>` is rendered only with a key (else
+  Clerk would start "keyless" mode and contact Clerk).
+- **One repo-root `.env`** for API and web: `next.config.ts` loads it with
+  `@next/env`. Only `NEXT_PUBLIC_*` reach the browser.
+- **Client-side data fetching** with a small `useQuery` hook rather than
+  TanStack Query or server components, since tokens live client-side. Revisit
+  if pages get heavier.
+- **Fake sign-in identity:** subject `dev_<email-slug>`, stored in
+  localStorage, so the same email is always the same person.
+- **Kept the scaffold defaults** `cacheComponents` + `partialPrefetching`
+  (Next 16). Side effect: the previous route stays mounted but hidden.
+- **Vitest** for web unit tests (token format, role rules, API client).
+  Browser e2e was a one-off Playwright run, not in the repo or CI yet.
+- **Versions:** picked the newest releases older than two weeks (Next
+  16.4.6, @clerk/nextjs 7.9.25, shadcn 4.23.0, Vitest 5.1.0; actions
+  checkout v7.0.1, setup-uv v10.3.3, setup-node v7.1.0). `@types/node` 24
+  to match Node 24 LTS (required by Vitest 5).
+- **CI concurrency:** superseded PR runs are cancelled; every push to main
+  runs to completion.
 
 ## Open questions / notes
 - **uv ↔ PyPI TLS stall in this Codespace**: `uv sync` connects over TCP
