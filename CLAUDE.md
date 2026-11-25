@@ -30,6 +30,7 @@ Next.js, TypeScript, Tailwind, shadcn/ui · Docker Compose
 Later: GCP (Cloud Run, Cloud SQL, Memorystore, Cloud Storage)
 
 ## Commands (keep this list current as they're created)
+- First-time setup (devcontainer runs it): bash .devcontainer/post-create.sh
 - Start services: docker compose up -d
 - Backend tests: cd backend && uv run pytest
 - Lint and types: uv run ruff check . && uv run mypy app

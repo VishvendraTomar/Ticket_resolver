@@ -1,8 +1,8 @@
 # Progress
 
 ## Current milestone
-**M1 — Foundation**: in progress. Backend tenancy code written; **DB/RLS
-tests have never run** (see below).
+**M1 — Foundation**: in progress. Backend tenancy verified against Compose
+Postgres (all 78 tests pass, including RLS, catalog and cross-tenant).
 
 ## Done
 - 2026-11-25: Plan approved with changes (PLAN.md §4, §5): Clerk identity
@@ -28,30 +28,47 @@ tests have never run** (see below).
     every `/v1` route (plus a check that every route has one), member rules.
   - docs/failure-modes/tenancy.md, ADR-0001.
 
-### Test status — read this
-- **Offline: 47 passed** (`uv run pytest`), ruff clean, mypy strict clean.
-- **31 DB tests skipped: never run against a real Postgres.** That includes
-  every RLS, catalog and cross-tenant test, *and the migration itself*. Treat
-  all of that code as unverified until they pass.
+- 2026-11-25: Local stack in the Codespace (Neon dropped):
+  - `compose.yaml`: postgres (`pgvector/pgvector:0.8.1-pg16`) + redis 7.4,
+    ports bound to 127.0.0.1. api/web join once they have Dockerfiles.
+  - `.env` → Compose (owner `DATABASE_URL`, `app_user` `APP_DATABASE_URL`);
+    `.env.example` rewritten for Compose.
+  - `backend/.python-version` pins 3.12 (uv had been picking 3.14).
+  - `alembic upgrade head` ran; `app_user` verified NOSUPERUSER,
+    NOBYPASSRLS, NOINHERIT. Downgrade → upgrade round trip verified.
+  - `.devcontainer/` (uv-managed Python 3.12, Node LTS, Docker-in-Docker);
+    `post-create.sh` writes `.env`, syncs deps, starts Compose, migrates.
+
+### Test status
+- **78 passed, 0 skipped** (47 offline + 31 DB: RLS, catalog,
+  cross-tenant for every route, member rules). ruff and mypy strict clean.
+- Fixes needed to get there:
+  - Test emails used `@example.test`; email-validator rejects `.test` as
+    special-use (422 on add-member). Tests now use `@example.com`;
+    production validation unchanged.
+  - Migration downgrade failed: `workspaces_select`/`users_select` policies
+    depend on `memberships`. Downgrade now drops them first.
+  - Removed deprecated `Result.tuples()` (SQLAlchemy 2.1) and set
+    `path_separator` in alembic.ini.
 
 ## In progress
-M1 backend tenancy, awaiting a database to verify against.
+M1: tenancy backend done and verified. Rest of M1 below.
 
-## Next step (in the Codespace)
-1. Write `compose.yaml` (Postgres 16 + pgvector ≥ 0.8, Redis) — it doesn't
-   exist yet — plus `.devcontainer/` if wanted.
-2. Point `.env` at Compose: owner `DATABASE_URL`, `APP_DATABASE_URL` as
-   `app_user`; `ENVIRONMENT=local`. Update `.env.example` comments (they
-   still describe Neon).
-3. `cd backend && uv sync && uv run alembic upgrade head && uv run pytest`;
-   fix whatever fails. Expect surprises in the migration and RLS tests —
-   nothing there has executed yet.
-4. Write ADR-0002 (RLS mechanism) and ADR-0003 (Clerk identity-only) — the
+## Next step
+1. Write ADR-0002 (RLS mechanism) and ADR-0003 (Clerk identity-only) — the
    code references them but they're not written.
-5. Then: web shell (Next.js + Clerk; Node ≥ 20), CI (GitHub Actions with a
-   Postgres service container), `seed/demo_m1.py`, PROGRESS update.
+2. CI (GitHub Actions with a Postgres service container running the same
+   pgvector image) so the DB tests run on every push.
+3. Web shell (Next.js + Clerk; Node LTS), api/web Dockerfiles and their
+   compose services, `seed/demo_m1.py`, PROGRESS update.
 
 ## Open questions / notes
+- **uv ↔ PyPI TLS stall in this Codespace**: `uv sync` connects over TCP
+  but the TLS handshake times out, while curl/pip (OpenSSL) work. Workaround
+  (also automated in `post-create.sh`): `uv export --frozen` → pip install
+  with `--require-hashes` into `backend/.venv` → `uv sync --frozen --offline`.
+  Cause not confirmed; worth retrying plain `uv sync` in a fresh Codespace.
+- The devcontainer has not been built yet; the next Codespace is its test.
 - ADR-0001 (Neon) was **not used**: the user chose Docker in Codespaces
   instead. Marked superseded.
 - FastAPI 0.165 nests included routers lazily; route enumeration uses

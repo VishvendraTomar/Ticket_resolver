@@ -1,0 +1,38 @@
+# Local development stack. `docker compose up -d` from the repo root.
+# M1 runs postgres + redis; api and web join once they have Dockerfiles,
+# and further services arrive in the milestone that first needs them (PLAN.md M1).
+#
+# Postgres superuser = the owner role (DATABASE_URL). The app role `app_user`
+# (NOBYPASSRLS) is created by `uv run alembic upgrade head`, not here.
+
+name: ticket-resolver
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.1-pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-owner_local_only}
+      POSTGRES_DB: ${POSTGRES_DB:-ticket_resolver}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  pgdata:
